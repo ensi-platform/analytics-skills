@@ -1,5 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "default_agent": "analyst",
   "permissions": [
     // Доступ за пределы проекта — спрашивать разрешение
     { "action": "external_directory", "resource": "*", "effect": "ask" },

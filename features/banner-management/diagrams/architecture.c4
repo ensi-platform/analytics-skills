@@ -1,0 +1,110 @@
+// Схема взаимодействия сервисов для фичи "Управление баннерами"
+// Источник: 02-ADR.md, раздел 2 (задействованные сервисы)
+// Каркас: .opencode/skills/adr-generator/templates/architecture.c4.tpl
+// Открыть: расширение likec4.likec4-vscode или `npx likec4@latest start`
+// Проверка: npx likec4@latest validate .
+
+specification {
+  element actor {
+    notation 'Пользователь или роль'
+    style {
+      shape person
+      color indigo
+    }
+  }
+
+  element webapp {
+    notation 'Веб-интерфейс: витрина, админ-панель'
+    style {
+      shape browser
+      color primary
+    }
+  }
+
+  element service {
+    notation 'Сервис, BFF или контейнер'
+    style {
+      shape component
+      color primary
+    }
+  }
+
+  element database {
+    notation 'База данных'
+    style {
+      shape cylinder
+      color green
+    }
+  }
+
+  element filestore {
+    notation 'Файловое хранилище'
+    style {
+      shape bucket
+      color secondary
+    }
+  }
+}
+
+model {
+  admin = actor 'Администратор'
+  visitor = actor 'Посетитель сайта'
+
+  adminUi = webapp 'Admin UI' {
+    technology 'Web'
+    description 'Интерфейс админ-панели: CRUD баннеров, загрузка изображений'
+  }
+
+  frontend = webapp 'Frontend' {
+    technology 'Next.js'
+    description 'Публичная витрина: отрисовывает баннеры типов main, slider, grid'
+  }
+
+  bff = service 'BFF' {
+    technology 'Node.js'
+    description 'Backend For Frontend: агрегация и кеширование публичных эндпоинтов'
+  }
+
+  adminBff = service 'Admin GUI Backend' {
+    technology 'BFF админ-панели'
+    description 'Единая точка входа для Admin UI: проксирует CRUD и загрузку изображений в CMS, проверяет права'
+  }
+
+  cms = service 'CMS' {
+    technology 'Go'
+    description 'Сервис управления контентом: CRUD баннеров, публичный и внутренний API'
+  }
+
+  db = database 'CMS DB' {
+    technology 'PostgreSQL'
+    description 'Баннеры, изображения, связи и даты активности'
+  }
+
+  objectStorage = filestore 'Object Storage' {
+    technology 'S3-совместимое'
+    description 'Внешнее хранилище файлов изображений'
+  }
+
+  admin -> adminUi 'работает в панели'
+  adminUi -> adminBff 'CRUD /v1/admin/banners'
+  adminUi -> adminBff 'POST /v1/admin/banners/upload'
+  adminBff -> cms 'проксирование /v1/admin/banners, загрузка файлов'
+  cms -> objectStorage 'PUT/GET изображения'
+  cms -> db 'SQL'
+
+  visitor -> frontend 'открывает главную'
+  frontend -> bff 'GET /v1/banners'
+  bff -> cms 'GET /v1/internal/banners, кеш 60 c'
+}
+
+views {
+  view index {
+    title 'Схема взаимодействия сервисов'
+    include *
+  }
+
+  view publicFlow {
+    title 'Публичный поток баннеров'
+    include visitor, frontend, bff, cms, db, objectStorage
+  }
+}

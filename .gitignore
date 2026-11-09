@@ -1,1 +1,7 @@
-# исключения
+# мои исключения
+presentation.md
+sec.puml
+description.md 
+new_file.md
+test_file
+.DS_Store
