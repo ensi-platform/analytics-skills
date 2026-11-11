@@ -11,14 +11,14 @@ ADR согласован пользователем (получено подтв
 
 ## Входные данные
 
-- `features/<slug>/01-BRD.md` — согласованный Business Requirements Document
-- `features/<slug>/02-ADR.md` — согласованный Architecture Decision Record
+- `features/<slug>/analytical documents/01-BRD.md` — согласованный Business Requirements Document
+- `features/<slug>/analytical documents/02-ADR.md` — согласованный Architecture Decision Record
 - `PROJECT-MAP.md` — карта проекта: домены, сервисы, архитектурные принципы
 - `templates/FR.md` — шаблон функциональных требований (путь относительно каталога скилла)
 
 ## Действия
 
-1. **Прочитай** `01-BRD.md` и `02-ADR.md` из папки фичи.
+1. **Прочитай** `01-BRD.md` и `02-ADR.md` из `features/<slug>/analytical documents/`.
 2. **Прочитай** `PROJECT-MAP.md` в корне проекта.
 3. **Прочитай шаблон** `templates/FR.md` (путь относительно каталога скилла).
 4. **Прочитай правила** `AGENTS.md` (в корне проекта).
@@ -63,7 +63,7 @@ PlantUML-диаграмма, описывающая основной бизне�
 Заполни `Дата`, `Версия`, `Статус`. В основании укажи версии ADR и BRD: `(ADR v1.0, BRD v1.0)`. Если это не первая версия — добавь строку в «Историю изменений» и объясни, что изменилось в ADR или BRD.
 
 6. **Построй матрицу трассировки** BR → FR (таблица: BR-ID → FR-ID).
-7. **Сохрани** как `features/<slug>/03-FR.md`.
+7. **Сохрани** как `features/<slug>/analytical documents/03-FR.md`.
 8. **Выведи пользователю резюме** (до 10 строк): количество FR, публичных API-эндпоинтов, сущностей БД.
 9. **Запроси подтверждение**: "FR сформирован. Согласовано? (ок/дальше/approved)"
 
