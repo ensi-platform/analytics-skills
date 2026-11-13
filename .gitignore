@@ -1,7 +1,5 @@
-# мои исключения
-presentation.md
-sec.puml
-description.md 
-new_file.md
-test_file
+# OSX
 .DS_Store
+
+# VSCode
+.vscode/
