@@ -42,7 +42,7 @@
 ## 3. Схема взаимодействия сервисов
 
 <!--
-  Схема — отдельный файл: features/<slug>/diagrams/architecture.c4
+  Схема — отдельный файл: features/<slug>/analytical documents/diagrams/architecture.c4
   Код схемы в документ НЕ вставляется: превью Markdown его не рендерит,
   а у читателя без LikeC4 на месте схемы остаётся пустой блок кода.
 

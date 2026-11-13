@@ -1,5 +1,5 @@
 // Каркас схемы взаимодействия сервисов для ADR.
-// Копируется в features/<slug>/diagrams/architecture.c4 и заполняется сервисами фичи.
+// Копируется в features/<slug>/analytical documents/diagrams/architecture.c4 и заполняется сервисами фичи.
 //
 // Правила:
 //   1. Стили задаются только здесь, в specification, по видам элементов.

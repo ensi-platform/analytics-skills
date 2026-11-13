@@ -1,0 +1,160 @@
+// Каркас схемы взаимодействия сервисов для ADR.
+// Копируется в features/<slug>/diagrams/architecture.c4 и заполняется сервисами фичи.
+//
+// Правила:
+//   1. Стили задаются только здесь, в specification, по видам элементов.
+//      В model и views стили не дублируются.
+//   2. Иконки не используем. Смысл несут форма, цвет и легенда (notation).
+//   3. У каждого элемента заполняется technology — без иконок это единственный
+//      способ показать стек.
+//   4. Проверка: npx likec4@latest validate .
+
+specification {
+  element actor {
+    notation 'Пользователь или роль'
+    style {
+      shape person
+      color indigo
+    }
+  }
+
+  element webapp {
+    notation 'Веб-интерфейс: витрина, админ-панель'
+    style {
+      shape browser
+      color primary
+    }
+  }
+
+  element mobileapp {
+    notation 'Мобильное приложение'
+    style {
+      shape mobile
+      color primary
+    }
+  }
+
+  element service {
+    notation 'Сервис, BFF или контейнер'
+    style {
+      shape component
+      color primary
+    }
+  }
+
+  element database {
+    notation 'База данных'
+    style {
+      shape cylinder
+      color green
+    }
+  }
+
+  element broker {
+    notation 'Брокер сообщений, очередь'
+    style {
+      shape queue
+      color amber
+    }
+  }
+
+  element filestore {
+    notation 'Файловое хранилище'
+    style {
+      shape bucket
+      color secondary
+    }
+  }
+
+  element external {
+    notation 'Внешняя система'
+    style {
+      shape rectangle
+      color muted
+    }
+  }
+}
+
+model {
+  buyer = actor 'Покупатель' {
+    technology 'Роль; подтверждённый телефон'
+  }
+  employee = actor 'Сотрудник магазина' {
+    technology 'Роль; административная сессия'
+  }
+  storefront = webapp 'Витрина Ensi' {
+    technology 'Web / HTTPS; текущий стек проверить'
+  }
+  adminUi = webapp 'Admin UI' {
+    technology 'Web / HTTPS; существующая админ-панель'
+  }
+  crm = service 'CRM Ensi' {
+    technology 'HTTP / REST; модуль и фоновые процессы дорабатываются'
+  }
+  crmDb = database 'Хранилище CRM' {
+    technology 'SQL / транзакции; текущую СУБД проверить'
+  }
+  customerAuth = service 'Customer Auth (Passport)' {
+    technology 'HTTP / REST; проверка телефона, контракт уточнить'
+  }
+  communication = service 'Communication' {
+    technology 'HTTP / REST; SMS-канал предлагается, провайдера проверить'
+  }
+  pim = service 'PIM' {
+    technology 'HTTP / REST; текущий стек проверить'
+  }
+  offers = service 'Offers' {
+    technology 'HTTP / REST; PostgreSQL по README, резерв доработать'
+  }
+  adminBff = service 'Admin GUI Backend' {
+    technology 'HTTP / REST; существующий BFF админ-панели'
+  }
+  adminAuth = service 'Admin Auth' {
+    technology 'HTTP / REST; административная аутентификация'
+  }
+
+  buyer -> storefront 'Выбор товара, количества и контактов'
+  storefront -> customerAuth 'HTTPS: подтверждение телефона'
+  customerAuth -> communication 'Внутренний REST: доставка кода'
+  communication -> buyer 'SMS с одноразовым кодом (предложение)'
+  storefront -> crm 'HTTPS: отправка и результат обращения'
+  crm -> customerAuth 'Проверка подтверждённой идентичности'
+  crm -> pim 'REST: идентичность, название, доступность товара'
+  crm -> offers 'REST: цена, остаток, резерв и снятие резерва'
+  crm -> crmDb 'SQL: статусы, запрет дублей, сроки, журнал и outbox'
+  employee -> adminUi 'Просмотр обращения и обработка звонка'
+  adminUi -> adminBff 'HTTPS: административные действия'
+  adminBff -> adminAuth 'Проверка административной сессии'
+  adminBff -> crm 'REST: обращения и условное изменение статуса'
+}
+
+views {
+  view index {
+    title 'Покупка в один клик — общая целевая архитектура'
+    include *
+    autoLayout TopBottom
+  }
+
+  view publicFlow {
+    title 'Покупатель — подтверждение телефона и создание обращения'
+    include buyer, storefront, customerAuth, communication, crm, crmDb, pim, offers
+    autoLayout LeftRight
+  }
+
+  view processing {
+    title 'Обработка — статусы CRM, резерв Offers и долговечные задания'
+    include employee, adminUi, adminBff, adminAuth, crm, crmDb, offers
+    autoLayout LeftRight
+  }
+
+  dynamic view creation {
+    title 'Создание обращения — подтверждённый резерв до ответа об успехе'
+    storefront -> crm 'Передаёт обращение и подтверждение телефона'
+    crm -> customerAuth 'Проверяет доверенную идентичность'
+    crm -> pim 'Проверяет выбранный товар'
+    crm -> crmDb 'Фиксирует попытку и исключает конкурентный дубль'
+    crm -> offers 'Проверяет цену и остаток; получает подтверждение резерва'
+    crm -> crmDb 'Фиксирует обращение Создан и начало срока; сохраняет результат'
+    crm -> storefront 'Возвращает успех после фактического создания'
+  }
+}
