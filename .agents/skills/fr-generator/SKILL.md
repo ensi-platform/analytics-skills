@@ -1,5 +1,5 @@
 ---
-name: FR Generator
+name: fr-generator
 description: Генерирует Functional Requirements Document на основе согласованных BRD и ADR. Используется третьим в флоу.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: ADR Generator
+name: adr-generator
 description: Генерирует Architecture Decision Record на основе согласованного BRD. Используется вторым в флоу.
 ---
 

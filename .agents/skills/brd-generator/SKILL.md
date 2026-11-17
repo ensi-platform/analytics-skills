@@ -1,5 +1,5 @@
 ---
-name: BRD Generator
+name: brd-generator
 description: Генерирует Business Requirements Document на основе короткого запроса пользователя. Используется первым в флоу.
 ---
 
