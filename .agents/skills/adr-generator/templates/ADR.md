@@ -46,7 +46,7 @@
   Код схемы в документ НЕ вставляется: превью Markdown его не рендерит,
   а у читателя без LikeC4 на месте схемы остаётся пустой блок кода.
 
-  Файл создаётся из каркаса: .opencode/skills/adr-generator/templates/architecture.c4.tpl
+  Файл создаётся из каркаса: .agents/skills/adr-generator/templates/architecture.c4.tpl
   Скопируй его в diagrams/architecture.c4 и рядом положи likec4.config.json
   с уникальным name (slug фичи) — иначе схемы разных фич конфликтуют.
   В каркасе уже заданы восемь видов элементов с формами, цветами и легендой:
