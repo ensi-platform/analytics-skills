@@ -32,14 +32,14 @@
 
 **Универсальный запуск:** открой проект и напиши агенту «Прочитай `AGENTS.md` и `roles/analyst.md` и работай по ним». Дальше — как в разделе «Как пользоваться». Валидацию BRD, ADR и FR выполняет отдельная сессия с `roles/validator.md` (в OpenCode — команда `/validate <путь>`). Когда дойдёт до QA, открой вторую сессию с той же фразой, но про `roles/qa.md`.
 
-| Инструмент | Корневой файл | Скиллы | Запуск QA | Статус |
-|---|---|---|---|---|
-| OpenCode | `AGENTS.md` | `.agents/skills/` | субагент `qa` | проверено |
-| Claude Code | `CLAUDE.md` (импортирует `AGENTS.md`) | `.claude/skills/` — симлинк на `.agents/skills/` | отдельная сессия | требует проверки |
-| Codex | `AGENTS.md` | `.agents/skills/` | отдельная сессия | требует проверки |
-| Cursor, Copilot, Gemini | `AGENTS.md` | `.agents/skills/` | отдельная сессия | требует проверки |
-| Hermes | `AGENTS.md` как workspace instructions | стандарт agentskills.io | отдельная сессия | требует проверки |
-| DeepSeek Harness (`dsh`) | `AGENTS.md` (в рабочей области) | `.agents/skills/` — нативно (`.dsh/skills` приоритетнее) | отдельная сессия | требует проверки |
+| Инструмент | Корневой файл | Скиллы | Запуск QA | Запуск валидатора | Статус |
+|---|---|---|---|---|---|
+| OpenCode | `AGENTS.md` | `.agents/skills/` | субагент `qa` | команда `/validate` | проверено |
+| Claude Code | `CLAUDE.md` (импортирует `AGENTS.md`) | `.claude/skills/` — симлинк на `.agents/skills/` | отдельная сессия | субагент `validator` и команда `/validate` | требует проверки |
+| Codex | `AGENTS.md` | `.agents/skills/` | отдельная сессия | отдельная сессия с `roles/validator.md` | требует проверки |
+| Cursor, Copilot, Gemini | `AGENTS.md` | `.agents/skills/` | отдельная сессия | отдельная сессия с `roles/validator.md` | требует проверки |
+| Hermes | `AGENTS.md` как workspace instructions | стандарт agentskills.io | отдельная сессия | отдельная сессия с `roles/validator.md` | требует проверки |
+| DeepSeek Harness (`dsh`) | `AGENTS.md` (в рабочей области) | `.agents/skills/` — нативно (`.dsh/skills` приоритетнее) | отдельная сессия | отдельная сессия с `roles/validator.md` | требует проверки |
 
 «Требует проверки» означает, что поддержка ожидается по документации инструмента, но полный прогон в этом проекте не выполнялся; результат фиксируй в таблице.
 
@@ -57,6 +57,15 @@ mkdir -p .claude
 - **Скиллы подхватываются сами.** DSH по умолчанию сканирует `.agents/skills/` в корне проекта (источник `project-agents`; `.dsh/skills` имеет больший приоритет, если появится). Поэтому четыре скилла — `brd-generator`, `adr-generator`, `fr-generator`, `testcases-generator` — доступны без симлинков и настройки. Формат `<name>/SKILL.md` и kebab-case имена совпадают со стандартом Agent Skills.
 - **Роли — как при универсальном запуске.** Начни сессию фразой «Прочитай `AGENTS.md` и `roles/analyst.md` и работай по ним». Валидацию BRD/ADR/FR выполняй отдельной сессией с `roles/validator.md`.
 - **Команда `/validate` — особенность OpenCode.** В DSH её нет, пока не подключён плагин, поэтому валидатор и QA запускаются отдельными сессиями: `roles/validator.md` и `roles/qa.md` соответственно. Это штатный режим DSH.
+
+**Валидатор в других инструментах.** Роль `roles/validator.md` не зависит от инструмента, поэтому валидатора можно запустить отдельной сессией в любом агенте, читающем файлы проекта:
+
+```bash
+Прочитай AGENTS.md и roles/validator.md и работай по ним.
+Провалидируй features/<slug>/analytical documents/01-BRD.md
+```
+
+Команда `/validate` — удобный сахар OpenCode. Для Claude Code добавлены субагент `validator` (`.claude/agents/validator.md`) и команда `/validate` (`.claude/commands/validate.md`), которая делегирует задачу этому субагенту. В остальных инструментах используется отдельная сессия с ролью.
 
 Автоматический запуск субагента есть не в каждой среде. Если его нет, передача QA выполняется отдельной сессией — это штатный режим, а не сбой.
 
@@ -107,6 +116,11 @@ roles/
     validator.md         # Обёртка: читает roles/validator.md
   commands/
     validate.md          # Команда /validate: запуск валидатора в фоне
+.claude/                 # Адаптер Claude Code: субагент и команда валидации
+  agents/
+    validator.md         # Субагент валидатора: читает roles/validator.md
+  commands/
+    validate.md          # Команда /validate: делегирует субагенту validator
 validation/
   README.md              # Чек-лист и правила валидации
   template.md            # Шаблон отчёта
