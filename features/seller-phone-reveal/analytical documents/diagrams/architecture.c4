@@ -1,0 +1,149 @@
+// Целевая архитектура seller-phone-reveal, основание: BRD v1.0.
+// Оформление сохранено из проектного каркаса architecture.c4.tpl.
+// Публичная граница сайта — логический компонент существующего сайта,
+// а не отдельный новый сервис; физическое размещение требует проверки.
+
+specification {
+  element actor {
+    notation 'Пользователь или роль'
+    style {
+      shape person
+      color indigo
+    }
+  }
+
+  element webapp {
+    notation 'Веб-интерфейс: витрина, админ-панель'
+    style {
+      shape browser
+      color primary
+    }
+  }
+
+  element mobileapp {
+    notation 'Мобильное приложение'
+    style {
+      shape mobile
+      color primary
+    }
+  }
+
+  element service {
+    notation 'Сервис, BFF или контейнер'
+    style {
+      shape component
+      color primary
+    }
+  }
+
+  element database {
+    notation 'База данных'
+    style {
+      shape cylinder
+      color green
+    }
+  }
+
+  element broker {
+    notation 'Брокер сообщений, очередь'
+    style {
+      shape queue
+      color amber
+    }
+  }
+
+  element filestore {
+    notation 'Файловое хранилище'
+    style {
+      shape bucket
+      color secondary
+    }
+  }
+
+  element external {
+    notation 'Внешняя система'
+    style {
+      shape rectangle
+      color muted
+    }
+  }
+}
+
+model {
+  buyer = actor 'Покупатель, включая гостя' {
+    technology 'Роль; авторизация не требуется'
+  }
+  manager = actor 'Контент-менеджер' {
+    technology 'Роль; административная сессия'
+  }
+  storefront = webapp 'Витрина сайта' {
+    technology 'Web / HTTPS; фактический стек проверить'
+  }
+  publicSite = service 'Публичная граница сайта (логическая)' {
+    technology 'HTTPS / внутренний REST; размещение проверить'
+  }
+  dialer = mobileapp 'Приложение звонка на устройстве' {
+    technology 'tel: / iPhone и Android'
+  }
+  offers = service 'Offers' {
+    technology 'HTTP / REST; связь с продавцом проверить'
+  }
+  businessUnits = service 'Business Units' {
+    technology 'HTTP / REST; операции контакта проверить или доработать'
+  }
+  sellerStorage = database 'Хранилище Business Units' {
+    technology 'Существующее хранилище; СУБД и структуру проверить'
+  }
+  adminUi = webapp 'Admin UI' {
+    technology 'Web / Inputmask; интеграцию со стеком проверить'
+  }
+  adminBff = service 'Admin GUI Backend' {
+    technology 'HTTP / REST; существующая граница админки'
+  }
+  adminAuth = service 'Admin Auth' {
+    technology 'HTTP / REST; сессия и права контент-менеджера'
+  }
+
+  buyer -> storefront 'Открывает карточку и нажимает Показать номер'
+  storefront -> publicSite 'HTTPS: наличие контакта; номер по нажатию'
+  publicSite -> offers 'Внутренний REST: единственный продавец товара'
+  publicSite -> businessUnits 'Внутренний REST: наличие или номер контакта'
+  businessUnits -> sellerStorage 'Чтение и сохранение общего контакта продавца'
+  storefront -> dialer 'tel: после нажатия на раскрытый номер'
+  manager -> adminUi 'Ввод российского номера через Inputmask'
+  adminUi -> adminBff 'HTTPS: административное изменение контакта'
+  adminBff -> adminAuth 'Проверка административного доступа'
+  adminBff -> businessUnits 'Внутренний REST: сохранить контакт продавца'
+}
+
+views {
+  view index {
+    title 'Телефон продавца — общая целевая архитектура'
+    include *
+    autoLayout TopBottom
+  }
+
+  view publicFlow {
+    title 'Публичный поток — раскрытие номера и начало звонка'
+    include buyer, storefront, publicSite, offers, businessUnits, sellerStorage, dialer
+    autoLayout LeftRight
+  }
+
+  view administration {
+    title 'Административный поток — изменение общего контакта'
+    include manager, adminUi, adminBff, adminAuth, businessUnits, sellerStorage
+    autoLayout LeftRight
+  }
+
+  dynamic view reveal {
+    title 'Раскрытие номера — одна попытка после нажатия'
+    buyer -> storefront 'Нажимает Показать номер; начинается отсчёт 3 секунд'
+    storefront -> publicSite 'Запрашивает номер без перезагрузки'
+    publicSite -> offers 'Разрешает единственного продавца товара'
+    publicSite -> businessUnits 'Читает текущий контакт продавца'
+    businessUnits -> sellerStorage 'Получает контакт из своего хранилища'
+    businessUnits -> publicSite 'Возвращает контакт'
+    publicSite -> storefront 'Возвращает номер для раскрытия'
+    storefront -> buyer 'Показывает номер; завершается измерение времени'
+  }
+}

@@ -1,1 +1,8 @@
-# исключения
+# OSX
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Claude Code: локальный симлинк на скиллы из .agents/skills/
+.claude/skills
